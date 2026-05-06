@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keypad - Not a Calculator!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 24px;
+      color: #222;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+
+    .instructions {
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .answer-display {
+      min-height: 56px;
+      border: 2px solid #bbb;
+      border-radius: 8px;
+      background: white;
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 12px 0 18px;
+    }
+
+    .placeholder {
+      color: #777;
+      font-size: 1rem;
+      font-weight: normal;
+    }
+
+    .sqrt-expression {
+      display: inline-flex;
+      align-items: flex-start;
+      margin: 0 2px;
+    }
+
+    .sqrt-symbol {
+      font-size: 1.45em;
+      line-height: 1;
+      margin-right: 1px;
+    }
+
+    .radicand {
+      border-top: 2px solid #222;
+      padding: 2px 4px 0 4px;
+      line-height: 1.05;
+      min-width: 10px;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .fraction-expression {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      line-height: 1;
+      margin: 0 4px;
+      font-size: 0.95em;
+    }
+
+    .fraction-numerator,
+    .fraction-denominator {
+      display: block;
+      padding: 0 4px;
+      min-width: 16px;
+      text-align: center;
+    }
+
+    .fraction-bar {
+      width: 100%;
+      border-top: 2px solid #222;
+      margin: 2px 0;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      max-width: 380px;
+    }
+
+    button {
+      padding: 12px 14px;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      background: white;
+      color: #222;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #eef6ff;
+    }
+
+    button.action-key {
+      background: #666;
+      color: white;
+    }
+
+    button.submit-key {
+      background: #1e73be;
+      color: white;
+      grid-column: span 2;
+    }
+
+    #feedback {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f1f1f1;
+      min-height: 24px;
+      line-height: 1.4;
+    }
+
+    .teacher-note {
+      margin-top: 14px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Enter a Radical Answer</h1>
+    <p class="instructions">
+      Use the keypad to enter the exact answer, then press <strong>submit</strong> to check your answer.
+    </p>
+
+    <div id="answer-display" class="answer-display" aria-live="polite">
+      <span class="placeholder">Your answer will appear here</span>
+    </div>
+
+    <div class="keypad" aria-label="numeric entry keypad with square root">
+      <button onclick="addToken('1')">1</button>
+      <button onclick="addToken('2')">2</button>
+      <button onclick="addToken('3')">3</button>
+      <button onclick="addToken('sqrt')">√</button>
+
+      <button onclick="addToken('4')">4</button>
+      <button onclick="addToken('5')">5</button>
+      <button onclick="addToken('6')">6</button>
+      <button onclick="addToken('/')">/</button>
+
+      <button onclick="addToken('7')">7</button>
+      <button onclick="addToken('8')">8</button>
+      <button onclick="addToken('9')">9</button>
+      <button onclick="addToken('x')">x</button>
+
+      <button onclick="addToken('0')">0</button>
+      <button onclick="addToken('.')">.</button>
+      <button class="action-key" onclick="backspaceAnswer()">⌫</button>
+      <button class="action-key" onclick="clearAnswer()">Clear</button>
+
+      <button class="submit-key" onclick="checkAnswer()">Submit</button>
+    </div>
+
+    <div id="feedback" aria-live="polite"></div>
+
+
+  </div>
+
+  <script>
+    const answerDisplay = document.getElementById('answer-display');
+    const feedback = document.getElementById('feedback');
+
+    let tokens = [];
+
+    function addToken(token) {
+      tokens.push(token);
+      renderAnswer();
+      feedback.textContent = '';
+    }
+
+    function backspaceAnswer() {
+      tokens.pop();
+      renderAnswer();
+      feedback.textContent = '';
+    }
+
+    function clearAnswer() {
+      tokens = [];
+      renderAnswer();
+      feedback.textContent = '';
+    }
+
+    function renderAnswer() {
+      if (tokens.length === 0) {
+        answerDisplay.innerHTML = '<span class="placeholder">Your answer will appear here</span>';
+        return;
+      }
+
+      answerDisplay.innerHTML = renderTokensPretty(tokens);
+    }
+
+    function renderTokensPretty(tokenList) {
+      const slashIndex = tokenList.indexOf('/');
+
+      // Render one simple fraction, such as 4/5 or √3/2.
+      // This can be expanded later for compound expressions.
+      if (slashIndex > 0 && slashIndex < tokenList.length - 1) {
+        const numeratorTokens = tokenList.slice(0, slashIndex);
+        const denominatorTokens = tokenList.slice(slashIndex + 1);
+
+        return `
+          <span class="fraction-expression">
+            <span class="fraction-numerator">${renderNonFractionTokens(numeratorTokens)}</span>
+            <span class="fraction-bar"></span>
+            <span class="fraction-denominator">${renderNonFractionTokens(denominatorTokens)}</span>
+          </span>
+        `;
+      }
+
+      return renderNonFractionTokens(tokenList);
+    }
+
+    function renderNonFractionTokens(tokenList) {
+      let html = '';
+
+      for (let i = 0; i < tokenList.length; i++) {
+        if (tokenList[i] === 'sqrt') {
+          let radicand = '';
+          let j = i + 1;
+
+          while (j < tokenList.length && /^[0-9.]$/.test(tokenList[j])) {
+            radicand += tokenList[j];
+            j++;
+          }
+
+          html += `
+            <span class="sqrt-expression">
+              <span class="sqrt-symbol">√</span>
+              <span class="radicand">${radicand || '&nbsp;'}</span>
+            </span>
+          `;
+
+          i = j - 1;
+        } else {
+          html += `<span>${tokenList[i]}</span>`;
+        }
+      }
+
+      return html;
+    }
+
+    function getPlainAnswer() {
+      return tokens
+        .map(token => token === 'sqrt' ? '√' : token)
+        .join('')
+        .toLowerCase()
+        .replaceAll(' ', '')
+        .replaceAll('sqrt', '√');
+    }
+
+    function checkAnswer() {
+      const answer = getPlainAnswer();
+
+      // THIS SPACE RESERVED FOR FEEDBACK
+      const feedbackByAnswer = {
+        '√3': 'Correct! The exact radical answer is √3.',
+        '3': 'Not quite. 3 is the radicand, but the exact answer should include the radical: √3.',
+        '√9': 'Check the value under the radical. √9 simplifies to 3, but the correct exact answer here is √3.',
+        '1.73': 'That is a decimal approximation. Use exact radical notation.',
+        '1.732': 'That is a decimal approximation. Use exact radical notation.',
+        '2': 'Not quite. Revisit the special right triangle relationship and enter the exact radical form.',
+        '': 'Please enter an answer before submitting.'
+      };
+
+      feedback.textContent = feedbackByAnswer[answer] || 'Not quite. Check your special right triangle relationship and enter the answer in exact radical form.';
+    }
+  </script>
+</body>
+</html>
