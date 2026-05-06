@@ -148,7 +148,6 @@
 </head>
 <body>
   <div class="container">
-    <h1>Enter a Radical Answer</h1>
     <p class="instructions">
       Use the keypad to enter the exact answer, then press <strong>submit</strong> to check your answer.
     </p>
@@ -284,10 +283,11 @@
       // THIS SPACE RESERVED FOR FEEDBACK
       const feedbackByAnswer = {
         '√3': 'Correct! The exact radical answer is √3.',
-        '3': 'Not quite. 3 is the radicand, but the exact answer should include the radical: √3.',
-        '√9': 'Check the value under the radical. √9 simplifies to 3, but the correct exact answer here is √3.',
+        '3': 'Not quite. 3 is the radicand, but the exact answer should include the radical.',
+        '√9': 'Check the value under the radical. √9 simplifies to 3.',
         '1.73': 'That is a decimal approximation. Use exact radical notation.',
         '1.732': 'That is a decimal approximation. Use exact radical notation.',
+        '1.7': 'That is a decimal approximation. Use exact radical notation.',
         '2': 'Not quite. Revisit the special right triangle relationship and enter the exact radical form.',
         '': 'Please enter an answer before submitting.'
       };
